@@ -1,0 +1,3 @@
+# Ovo je privremeni fix (vjerovatno nece raditi u ostalim OS, tako da obratite paznju)
+CompileFlags:
+  Add: [--gcc-install-dir=/usr/lib/gcc/x86_64-linux-gnu/13,-std=c++17]
