@@ -1,4 +1,5 @@
 // TP 2025/2026: Zadaća 2, Zadatak 1
+#include <array>
 #include <cctype>
 #include <iostream>
 #include <stdexcept>
@@ -25,17 +26,18 @@ enum class Komande { Idi, Rotiraj, Sakrij, Otkrij, PrikaziTeren, Kraj };
 
 int xmin = -10, xmax = 10, ymin = -10, ymax = 10;
 bool vidljiv = true;
-std::vector<std::vector<int>> teren = [] {
+auto InicijalniTeren() {
   std::vector<std::vector<int>> t(21, std::vector<int>(21, 0));
-  t.at(10).at(10) = 3; // bit0: posjeceno, bit1: robot
+  t.at(10).at(10) = 1;
   return t;
-}();
+}
+auto teren = InicijalniTeren();
 
-const int dx[] = {0, 1, 1, 1, 0, -1, -1, -1};
-const int dy[] = {1, 1, 0, -1, -1, -1, 0, 1};
-
-const char *nazivi[] = {"sjever", "sjeveroistok", "istok", "jugoistok",
-                        "jug",    "jugozapad",    "zapad", "sjeverozapad"};
+const std::array<int, 8> pomaci_x{0, 1, 1, 1, 0, -1, -1, -1};
+const std::array<int, 8> pomaci_y{1, 1, 0, -1, -1, -1, 0, 1};
+const std::array<const char *, 8> nazivi_pravaca{
+    "sjever", "sjeveroistok", "istok", "jugoistok",
+    "jug",    "jugozapad",    "zapad", "sjeverozapad"};
 
 int Sirina() { return xmax - xmin + 1; }
 
@@ -48,24 +50,16 @@ bool ValidnaPozicija(int x, int y) {
 int IndeksX(int x) { return x - xmin; }
 int IndeksY(int y) { return ymax - y; }
 
-int Sredina(int a, int b) {
-  long long int suma = (long long int)a + b;
+int &DajPolje(int x, int y) { return teren.at(IndeksY(y)).at(IndeksX(x)); }
+
+int CjelobrojnaSredina(int a, int b) {
+  long long int suma = static_cast<long long int>(a) + b;
   return (suma >= 0 || suma % 2 == 0) ? suma / 2 : suma / 2 - 1;
 }
 
 void Oznaci(int x, int y) {
   if (ValidnaPozicija(x, y))
-    teren.at(IndeksY(y)).at(IndeksX(x)) |= 1;
-}
-
-void OznaciRobota(int x, int y) {
-  if (ValidnaPozicija(x, y))
-    teren.at(IndeksY(y)).at(IndeksX(x)) |= 2;
-}
-
-void UkloniRobota(int x, int y) {
-  if (ValidnaPozicija(x, y))
-    teren.at(IndeksY(y)).at(IndeksX(x)) &= ~2;
+    DajPolje(x, y) = 1;
 }
 
 void PreskociRazmake() {
@@ -92,16 +86,20 @@ void KreirajTeren(int xmin, int xmax, int ymin, int ymax, int &x, int &o,
   Robot::ymax = ymax;
   vidljiv = true;
 
-  teren.assign(Visina(), std::vector<int>(Sirina(), 0));
-  x = Sredina(xmin, xmax);
-  o = Sredina(ymin, ymax);
+  teren.clear();
+  teren.resize(Visina());
+  for (int i = 0; i < Visina(); i++)
+    teren.at(i).resize(Sirina());
+  x = CjelobrojnaSredina(xmin, xmax);
+  o = CjelobrojnaSredina(ymin, ymax);
   orijentacija = Pravci::Sjever;
-  OznaciRobota(x, o);
   Oznaci(x, o);
 }
 
 bool Idi(int &x, int &y, Pravci orijentacija, int korak) {
-  int p = (int)orijentacija, pom_x = dx[p], pom_y = dy[p];
+  int indeks_pravca = static_cast<int>(orijentacija);
+  int pom_x = pomaci_x.at(indeks_pravca);
+  int pom_y = pomaci_y.at(indeks_pravca);
   if (korak < 0) {
     korak = -korak;
     pom_x = -pom_x;
@@ -112,48 +110,40 @@ bool Idi(int &x, int &y, Pravci orijentacija, int korak) {
     if (!ValidnaPozicija(n_x, n_y))
       return false;
 
-    UkloniRobota(x, y);
     x = n_x;
     y = n_y;
-    OznaciRobota(x, y);
     if (vidljiv)
       Oznaci(x, y);
   }
   return true;
 }
 void Rotiraj(Pravci &orijentacija, int ugao) {
-  int p = ((int)orijentacija - ugao) % 8;
-  if (p < 0)
-    p += 8;
-  orijentacija = (Pravci)p;
+  int novi_pravac = (static_cast<int>(orijentacija) - ugao) % 8;
+  if (novi_pravac < 0)
+    novi_pravac += 8;
+  orijentacija = static_cast<Pravci>(novi_pravac);
 }
 
 void Sakrij() { vidljiv = false; }
-void Otkrij() {
-  vidljiv = true;
-  for (std::size_t i = 0; i < teren.size(); i++) {
-    for (std::size_t j = 0; j < teren.at(i).size(); j++) {
-      if (teren.at(i).at(j) & 2)
-        teren.at(i).at(j) |= 1;
-    }
-  }
-}
+void Otkrij() { vidljiv = true; }
 
 void IspisiPoziciju(int x, int y, Pravci orijentacija) {
   std::cout << "Robot je " << (vidljiv ? "vidljiv" : "nevidljiv")
             << ", nalazi se na poziciji (" << x << "," << y << ") i gleda na "
-            << nazivi[(int)orijentacija] << ".\n";
+            << nazivi_pravaca.at(static_cast<int>(orijentacija)) << ".\n";
 }
 
-void PrikaziTeren() {
+void PrikaziTerenSaPozicijom(int x_robota, int y_robota) {
   for (int i = 0; i < Sirina() + 2; i++)
     std::cout << '#';
   std::cout << "\n";
   for (int yy = ymax; yy >= ymin; yy--) {
     std::cout << '#';
     for (int xx = xmin; xx <= xmax; xx++) {
-      int polje = teren.at(IndeksY(yy)).at(IndeksX(xx));
-      std::cout << ((polje & 2) ? 'O' : ((polje & 1) ? '*' : ' '));
+      if (xx == x_robota && yy == y_robota)
+        std::cout << 'O';
+      else
+        std::cout << (DajPolje(xx, yy) != 0 ? '*' : ' ');
     }
     std::cout << "#\n";
   }
@@ -161,6 +151,8 @@ void PrikaziTeren() {
     std::cout << '#';
   std::cout << "\n";
 }
+
+void PrikaziTeren() { PrikaziTerenSaPozicijom(0, 0); }
 
 void PrijaviGresku(KodoviGresaka kod_greske) {
   if (kod_greske == KodoviGresaka::PogresnaKomanda)
@@ -181,10 +173,11 @@ bool IzvrsiKomandu(Komande komanda, int parametar, int &x, int &y,
     Rotiraj(orijentacija, parametar);
   else if (komanda == Komande::Sakrij)
     Sakrij();
-  else if (komanda == Komande::Otkrij)
+  else if (komanda == Komande::Otkrij) {
     Otkrij();
-  else if (komanda == Komande::PrikaziTeren)
-    PrikaziTeren();
+    Oznaci(x, y);
+  } else if (komanda == Komande::PrikaziTeren)
+    PrikaziTerenSaPozicijom(x, y);
   return true;
 }
 
@@ -213,17 +206,9 @@ bool UnosKomande(Komande &komanda, int &parametar, KodoviGresaka &kod_greske) {
       return false;
     }
 
-    int sljedeci = std::cin.peek();
-    if (sljedeci != EOF && sljedeci != '\n' &&
-        !std::isspace((unsigned char)sljedeci)) {
-      kod_greske = KodoviGresaka::NeispravanParametar;
-      OdbaciLiniju();
-      return false;
-    }
-
     PreskociRazmake();
     if (std::cin.peek() != EOF && std::cin.peek() != '\n') {
-      kod_greske = KodoviGresaka::SuvisanParametar;
+      kod_greske = KodoviGresaka::NeispravanParametar;
       OdbaciLiniju();
       return false;
     }
