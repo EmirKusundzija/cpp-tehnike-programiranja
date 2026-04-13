@@ -252,44 +252,42 @@ bool UnosKomande(Komande &komanda, int &parametar, KodoviGresaka &kod_greske) {
 }
 } // namespace Robot
 
-using namespace Robot;
-
 int main() {
   int t_xmin, t_xmax, t_ymin, t_ymax;
   int x, y, parametar;
-  Pravci orijentacija;
-  Komande komanda;
-  KodoviGresaka kod_greske;
+  Robot::Pravci orijentacija;
+  Robot::Komande komanda;
+  Robot::KodoviGresaka kod_greske;
 
   std::cout << "Unesite dimenzije terena (xmin xmax ymin ymax): ";
   if (!(std::cin >> t_xmin >> t_xmax >> t_ymin >> t_ymax))
     return 0;
-  OdbaciLiniju();
+  Robot::OdbaciLiniju();
 
   try {
-    KreirajTeren(t_xmin, t_xmax, t_ymin, t_ymax, x, y, orijentacija);
+    Robot::KreirajTeren(t_xmin, t_xmax, t_ymin, t_ymax, x, y, orijentacija);
   } catch (std::range_error &) {
     std::cout << "Nije moguce kreirati takav teren!";
     return 0;
   }
 
-  IspisiPoziciju(x, y, orijentacija);
+  Robot::IspisiPoziciju(x, y, orijentacija);
   for (;;) {
     std::cout << "Unesite komandu: ";
-    if (!UnosKomande(komanda, parametar, kod_greske)) {
-      PrijaviGresku(kod_greske);
+    if (!Robot::UnosKomande(komanda, parametar, kod_greske)) {
+      Robot::PrijaviGresku(kod_greske);
       continue;
     }
 
-    bool uspjeh = IzvrsiKomandu(komanda, parametar, x, y, orijentacija);
-    if (komanda == Komande::Idi && !uspjeh)
+    bool uspjeh = Robot::IzvrsiKomandu(komanda, parametar, x, y, orijentacija);
+    if (komanda == Robot::Komande::Idi && !uspjeh)
       std::cout << "Robot je pokusao napustiti teren!\n";
 
-    if (komanda == Komande::Kraj)
+    if (komanda == Robot::Komande::Kraj)
       break;
 
-    if (komanda != Komande::PrikaziTeren)
-      IspisiPoziciju(x, y, orijentacija);
+    if (komanda != Robot::Komande::PrikaziTeren)
+      Robot::IspisiPoziciju(x, y, orijentacija);
   }
 
   std::cout << "Dovidjenja!";
