@@ -25,7 +25,7 @@ enum class KodoviGresaka {
 enum class Komande { Idi, Rotiraj, Sakrij, Otkrij, PrikaziTeren, Kraj };
 
 int xmin = -10, xmax = 10, ymin = -10, ymax = 10;
-bool vidljiv = true;
+bool vidljivost = true;
 auto InicijalniTeren() {
   std::vector<std::vector<int>> t(21, std::vector<int>(21, 0));
   t.at(10).at(10) = 1;
@@ -84,7 +84,7 @@ void KreirajTeren(int xmin, int xmax, int ymin, int ymax, int &x, int &o,
   Robot::xmax = xmax;
   Robot::ymin = ymin;
   Robot::ymax = ymax;
-  vidljiv = true;
+  vidljivost = true;
 
   teren.clear();
   teren.resize(Visina());
@@ -112,7 +112,7 @@ bool Idi(int &x, int &y, Pravci orijentacija, int korak) {
 
     x = n_x;
     y = n_y;
-    if (vidljiv)
+    if (vidljivost)
       Oznaci(x, y);
   }
   return true;
@@ -124,11 +124,11 @@ void Rotiraj(Pravci &orijentacija, int ugao) {
   orijentacija = static_cast<Pravci>(novi_pravac);
 }
 
-void Sakrij() { vidljiv = false; }
-void Otkrij() { vidljiv = true; }
+void Sakrij() { vidljivost = false; }
+void Otkrij() { vidljivost = true; }
 
 void IspisiPoziciju(int x, int y, Pravci orijentacija) {
-  std::cout << "Robot je " << (vidljiv ? "vidljiv" : "nevidljiv")
+  std::cout << "Robot je " << (vidljivost ? "vidljiv" : "nevidljiv")
             << ", nalazi se na poziciji (" << x << "," << y << ") i gleda na "
             << nazivi_pravaca.at(static_cast<int>(orijentacija)) << ".\n";
 }
