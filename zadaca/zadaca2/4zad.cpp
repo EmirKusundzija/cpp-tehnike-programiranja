@@ -14,15 +14,31 @@ template <typename Tip> void IspisiMatricu(std::vector<std::vector<Tip>> &mat) {
     std::cout << "\n";
   }
 }
+
 template <typename Tip>
-bool Kriterij(std::vector<Tip> v1, std::vector<Tip> v2) {
-  Tip proizvod_1 = 1;
-  for (const auto &i : v1) {
-    proizvod_1 *= i;
+bool Kriterij(const std::vector<Tip> &v1, const std::vector<Tip> &v2) {
+  Tip proizvod_1 = Tip();
+  if (!v1.empty()) {
+    proizvod_1 = v1.at(0);
+
+    auto p1 = v1.begin() + 1;
+    auto p2 = v1.end();
+
+    while (p1 != p2) {
+      proizvod_1 = proizvod_1 * (*p1++);
+    }
   }
-  Tip proizvod_2 = 1;
-  for (const auto &j : v2) {
-    proizvod_2 *= j;
+
+  Tip proizvod_2 = Tip();
+  if (!v2.empty()) {
+    proizvod_2 = v2.at(0);
+
+    auto p1 = v2.begin() + 1;
+    auto p2 = v2.end();
+
+    while (p1 != p2) {
+      proizvod_2 = proizvod_2 * (*p1++);
+    }
   }
   if (proizvod_1 != proizvod_2)
     return proizvod_1 < proizvod_2;
@@ -38,7 +54,7 @@ void SortirajPoProizvoduRedova(
 int main() {
   std::cout
       << "Unesite elemente (* za kraj reda, * na pocetku reda za kraj unosa): ";
-  Matrica<int> A{};
+  Matrica<int> A;
 
   for (;;) {
     std::vector<int> red;

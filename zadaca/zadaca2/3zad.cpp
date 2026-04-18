@@ -1,15 +1,19 @@
 // TP 2025/2026: Zadaća 2, Zadatak 3
 #include <iomanip>
 #include <iostream>
+#include <iterator>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 template <typename F, typename A, typename B>
-auto GeneraliziraniSpoljasnjiProizvod(A kontejner1, B kontejner2, F f)
-    -> std::vector<std::vector<decltype(f(*std::begin(kontejner1),
-                                          *std::begin(kontejner2)))>> {
+auto GeneraliziraniSpoljasnjiProizvod(const A &kontejner1, const B &kontejner2,
+                                      F f)
+    -> std::vector<std::vector<std::remove_reference_t<
+        decltype(f(*std::begin(kontejner1), *std::begin(kontejner2)))>>> {
 
-  using Tip = decltype(f(*std::begin(kontejner1), *std::begin(kontejner2)));
+  using Tip = std::remove_reference_t<decltype(f(*std::begin(kontejner1),
+                                                 *std::begin(kontejner2)))>;
 
   std::vector<std::vector<Tip>> matrica;
 
