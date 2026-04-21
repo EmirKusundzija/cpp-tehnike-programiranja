@@ -1,6 +1,11 @@
 #include <iostream>
+#include <stack>
 
 int main() {
-  std::cout << double() << "\n";
+  try {
+
+  } catch (...) {
+    std::cout << "Neko sranje!";
+  }
   return 0;
 }
