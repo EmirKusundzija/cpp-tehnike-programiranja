@@ -1,11 +1,10 @@
 #include <iostream>
-#include <stack>
-
+#include <vector>
 int main() {
-  try {
+  std::vector<int> a{1, 2, 3, 4, 6};
 
-  } catch (...) {
-    std::cout << "Neko sranje!";
+  for (auto &x : a) {
+    std::cout << x << " ";
   }
   return 0;
 }
