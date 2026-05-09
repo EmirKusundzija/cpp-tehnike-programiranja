@@ -79,7 +79,7 @@ int main() {
     int trazeni_korak = OdabirKoraka(N, K);
     std::cout << "Trazeni korak: " << trazeni_korak << std::endl;
   } catch (std::domain_error &e) {
-    std::cout << e.what() << std::endl;
+    std::cout << e.what() << "\n";
   }
 
   return 0;
