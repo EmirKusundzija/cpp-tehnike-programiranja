@@ -76,7 +76,7 @@ template <typename TipElemenata>
 Matrica<TipElemenata> ProduktMatrica(const Matrica<TipElemenata> &m1,
                                      const Matrica<TipElemenata> &m2) {
   if (m1.br_kolona != m2.br_redova)
-    throw std::domain_error("Matrice nisu saglasne za mnozenje!");
+    throw std::domain_error("Matrice nisu saglasne za mnozenje");
 
   auto m3 = StvoriMatricu<TipElemenata>(m1.br_redova, m2.br_kolona);
   for (int i = 0; i < m1.br_redova; i++) {
@@ -98,7 +98,7 @@ Matrica<TipElemenata> MatricniHarmonijskiPolinom(const Matrica<TipElemenata> &m,
     throw std::domain_error("Pogresan parametar n");
 
   auto rez = StvoriMatricu<TipElemenata>(m.br_redova, m.br_kolona);
-
+  Matrica<TipElemenata> stepen{};
   try {
     for (int i = 0; i < m.br_redova; i++)
       for (int j = 0; j < m.br_kolona; j++)
@@ -107,7 +107,7 @@ Matrica<TipElemenata> MatricniHarmonijskiPolinom(const Matrica<TipElemenata> &m,
     if (n == 0)
       return rez;
 
-    auto stepen = StvoriMatricu<TipElemenata>(m.br_redova, m.br_kolona);
+    stepen = StvoriMatricu<TipElemenata>(m.br_redova, m.br_kolona);
 
     for (int i = 0; i < m.br_redova; i++)
       for (int j = 0; j < m.br_kolona; j++)
@@ -128,6 +128,7 @@ Matrica<TipElemenata> MatricniHarmonijskiPolinom(const Matrica<TipElemenata> &m,
     return rez;
 
   } catch (...) {
+    UnistiMatricu(stepen);
     UnistiMatricu(rez);
     throw;
   }
