@@ -10,7 +10,6 @@
 #include <utility>
 #include <vector>
 
-
 class Polazak {
   std::string odrediste, oznaka_voznje;
   int broj_perona, sat_polaska, minute_polaska, trajanje_voznje, kasnjenje;
@@ -121,10 +120,10 @@ public:
   ~Polasci() = default;
 
   Polasci(const Polasci &p);
-  Polasci(Polasci &&p);
+  Polasci(Polasci &&p) = default;
 
   Polasci &operator=(const Polasci &p);
-  Polasci &operator=(Polasci &&p);
+  Polasci &operator=(Polasci &&p) = default;
 
   void RegistrirajPolazak(std::string_view odrediste,
                           std::string_view oznaka_voznje, int broj_perona,
@@ -132,8 +131,9 @@ public:
                           int trajanje_voznje);
 
   void RegistrirajPolazak(std::shared_ptr<Polazak> p);
+  void RegistrirajPolazak(Polazak *p);
 
-  int DajBrojPolazaka() const { return polasci.size(); }
+  int DajBrojPolazaka() const { return static_cast<int>(polasci.size()); }
   int DajBrojPolazakaKojiKasne() const;
 
   Polazak &DajPrviPolazak();
@@ -160,8 +160,6 @@ Polasci::Polasci(const Polasci &p) {
     polasci.push_back(std::make_shared<Polazak>(*polazak));
 }
 
-Polasci::Polasci(Polasci &&p) : polasci(std::move(p.polasci)) {}
-
 Polasci &Polasci::operator=(const Polasci &p) {
   if (this != &p) {
     std::vector<std::shared_ptr<Polazak>> novi_polasci;
@@ -170,15 +168,8 @@ Polasci &Polasci::operator=(const Polasci &p) {
     for (const auto &polazak : p.polasci)
       novi_polasci.push_back(std::make_shared<Polazak>(*polazak));
 
-    polasci = novi_polasci;
+    polasci = std::move(novi_polasci);
   }
-
-  return *this;
-}
-
-Polasci &Polasci::operator=(Polasci &&p) {
-  if (this != &p)
-    polasci = std::move(p.polasci);
 
   return *this;
 }
@@ -200,10 +191,17 @@ void Polasci::RegistrirajPolazak(std::shared_ptr<Polazak> p) {
   polasci.push_back(p);
 }
 
+void Polasci::RegistrirajPolazak(Polazak *p) {
+  if (p == nullptr)
+    throw std::domain_error("Neispravan polazak");
+
+  polasci.push_back(std::make_shared<Polazak>(*p));
+}
+
 int Polasci::DajBrojPolazakaKojiKasne() const {
-  return std::count_if(
+  return static_cast<int>(std::count_if(
       polasci.begin(), polasci.end(),
-      [](const std::shared_ptr<Polazak> &p) { return p->DaLiKasni(); });
+      [](const std::shared_ptr<Polazak> &p) { return p->DaLiKasni(); }));
 }
 
 Polazak &Polasci::DajPrviPolazak() {
