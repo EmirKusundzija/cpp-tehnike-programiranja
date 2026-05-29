@@ -5,7 +5,6 @@
 #include <stdexcept>
 #include <utility>
 
-
 typedef std::pair<double, double> Tacka;
 enum class Pozicija { GoreLijevo, GoreDesno, DoljeLijevo, DoljeDesno };
 enum class Smjer { Nalijevo, Nadesno };
@@ -120,8 +119,8 @@ public:
   bool DaLiSadrzi(const Pravougaonik &p) const {
     return ManjeIliJednako(gore_lijevo.first, p.gore_lijevo.first) &&
            ManjeIliJednako(p.dolje_desno.first, dolje_desno.first) &&
-           ManjeIliJednako(p.dolje_desno.second, gore_lijevo.second) &&
-           ManjeIliJednako(dolje_desno.second, p.dolje_desno.second);
+           ManjeIliJednako(dolje_desno.second, p.dolje_desno.second) &&
+           ManjeIliJednako(p.gore_lijevo.second, gore_lijevo.second);
   }
 
   bool DaLiSeSijeceSa(const Pravougaonik &p) const {
@@ -156,7 +155,7 @@ public:
     double dolje = std::max(p1.dolje_desno.second, p2.dolje_desno.second);
 
     if (!ManjeIliJednako(lijevo, desno) || !ManjeIliJednako(dolje, gore))
-      throw std::domain_error("Presjek ne postoji");
+      throw std::domain_error("Pravougaonici se ne presjecaju");
 
     return Pravougaonik({lijevo, gore}, {desno, dolje});
   }
@@ -195,7 +194,7 @@ bool DaLiSuSlicni(const Pravougaonik &p1, const Pravougaonik &p2) {
   bool p2_tacka = Pravougaonik::Jednako(a2, 0) && Pravougaonik::Jednako(b2, 0);
 
   if (p1_tacka || p2_tacka)
-    return p1_tacka && p2_tacka;
+    return true;
 
   bool p1_duz = Pravougaonik::Jednako(b1, 0);
   bool p2_duz = Pravougaonik::Jednako(b2, 0);
@@ -229,7 +228,7 @@ int main() {
     }
 
     double delta_x, delta_y;
-    std::cout << "Unesite podatke za transliranje (delta_x delta_y): ";
+    std::cout << "Unesite podatke za transliranje (dx dy): ";
     std::cin >> delta_x >> delta_y;
 
     std::transform(pravougaonici, pravougaonici + n, pravougaonici,
@@ -244,7 +243,7 @@ int main() {
                      return p;
                    });
 
-    std::cout << "Pravougaonici nakon transformacija:\n";
+    std::cout << "Pravougaonici, nakon transformacija:\n";
 
     std::for_each(pravougaonici, pravougaonici + n, [](Pravougaonik *p) {
       p->Ispisi();
