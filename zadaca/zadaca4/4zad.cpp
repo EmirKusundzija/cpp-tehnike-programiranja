@@ -120,10 +120,10 @@ public:
   ~Polasci() = default;
 
   Polasci(const Polasci &p);
-  Polasci(Polasci &&p) = default;
+  Polasci(Polasci &&p);
 
   Polasci &operator=(const Polasci &p);
-  Polasci &operator=(Polasci &&p) = default;
+  Polasci &operator=(Polasci &&p);
 
   void RegistrirajPolazak(std::string_view odrediste,
                           std::string_view oznaka_voznje, int broj_perona,
@@ -160,6 +160,10 @@ Polasci::Polasci(const Polasci &p) {
     polasci.push_back(std::make_shared<Polazak>(*polazak));
 }
 
+Polasci::Polasci(Polasci &&p) : polasci(std::move(p.polasci)) {
+  p.polasci.clear();
+}
+
 Polasci &Polasci::operator=(const Polasci &p) {
   if (this != &p) {
     std::vector<std::shared_ptr<Polazak>> novi_polasci;
@@ -169,6 +173,15 @@ Polasci &Polasci::operator=(const Polasci &p) {
       novi_polasci.push_back(std::make_shared<Polazak>(*polazak));
 
     polasci = std::move(novi_polasci);
+  }
+
+  return *this;
+}
+
+Polasci &Polasci::operator=(Polasci &&p) {
+  if (this != &p) {
+    polasci = std::move(p.polasci);
+    p.polasci.clear();
   }
 
   return *this;

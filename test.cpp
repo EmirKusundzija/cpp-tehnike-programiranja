@@ -3,6 +3,8 @@
 int main() {
   // C++17 i nadalje
   std::vector brojevi{1, 2, 3, 4, 5};
+  std::cout<<"Hello";
+  
   auto p1 = brojevi.begin();
   auto p2 = brojevi.end();
   while (p1 != p2) {
