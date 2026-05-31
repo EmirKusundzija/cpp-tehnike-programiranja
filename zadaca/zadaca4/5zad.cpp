@@ -12,15 +12,14 @@ class Korisnik {
   std::string broj_telefona;
 
 public:
-  Korisnik(int CB, std::string IP, std::string Adresa, std::string BT)
-      : clanski_broj(CB), ime_prezime(IP), adresa(Adresa), broj_telefona(BT) {}
+  Korisnik(int clanski_broj, std::string ime_prezime, std::string adresa,
+           std::string broj_telefona)
+      : clanski_broj(clanski_broj), ime_prezime(std::move(ime_prezime)),
+        adresa(std::move(adresa)), broj_telefona(std::move(broj_telefona)) {}
 
   int DajClanskiBroj() const { return clanski_broj; }
-
   std::string DajImeIPrezime() const { return ime_prezime; }
-
   std::string DajAdresu() const { return adresa; }
-
   std::string DajTelefon() const { return broj_telefona; }
 
   void Ispisi() const {
@@ -33,35 +32,41 @@ public:
 
 class Film {
   int evidencijski_broj;
-  bool video_traka_ili_dvd; // DVD ako je true, false ako je Video traka
+  bool dvd;
   std::string naziv_filma;
   std::string zanr;
   int godina_produkcije;
   Korisnik *pok_na_korisnika;
 
 public:
-  Film(int EB, bool VTDVD, std::string NF, std::string Z, int GP)
-      : evidencijski_broj(EB), video_traka_ili_dvd(VTDVD), naziv_filma(NF),
-        zanr(Z), godina_produkcije(GP), pok_na_korisnika(nullptr) {};
+  Film(int evidencijski_broj, bool dvd, std::string naziv_filma,
+       std::string zanr, int godina_produkcije)
+      : evidencijski_broj(evidencijski_broj), dvd(dvd),
+        naziv_filma(std::move(naziv_filma)), zanr(std::move(zanr)),
+        godina_produkcije(godina_produkcije), pok_na_korisnika(nullptr) {}
 
   int DajEvidencijskiBroj() const { return evidencijski_broj; }
   std::string DajNaziv() const { return naziv_filma; }
   std::string DajZanr() const { return zanr; }
   int DajGodinuProdukcije() const { return godina_produkcije; }
-  bool DaLiJeDVD() const { return video_traka_ili_dvd; }
+  bool DaLiJeDVD() const { return dvd; }
 
-  void ZaduziFilm(Korisnik &k) { pok_na_korisnika = &k; }
+  void ZaduziFilm(Korisnik &korisnik) { pok_na_korisnika = &korisnik; }
   void RazduziFilm() { pok_na_korisnika = nullptr; }
   bool DaLiJeZaduzen() const { return pok_na_korisnika != nullptr; }
+
   Korisnik &DajKodKogaJe() const {
-    if (pok_na_korisnika == nullptr)
+    if (!pok_na_korisnika)
       throw std::domain_error("Film nije zaduzen");
     return *pok_na_korisnika;
   }
-  Korisnik *DajPokKodKogaJe() const { return pok_na_korisnika; }
+
+  Korisnik *DajPokKogaJe() const { return pok_na_korisnika; }
+  Korisnik *DajPokKodKogaJe() const { return DajPokKogaJe(); }
+
   void Ispisi() const {
     std::cout << "Evidencijski broj: " << evidencijski_broj << "\n";
-    std::cout << "Medij: " << (DaLiJeDVD() ? "DVD" : "Video traka") << "\n";
+    std::cout << "Medij: " << (dvd ? "DVD" : "Video traka") << "\n";
     std::cout << "Naziv filma: " << naziv_filma << "\n";
     std::cout << "Zanr: " << zanr << "\n";
     std::cout << "Godina produkcije: " << godina_produkcije << "\n";
@@ -69,30 +74,26 @@ public:
 };
 
 class Videoteka {
-  // mapa korisnika
   std::map<int, Korisnik *> mapa_korisnika;
-  // mapa filmova
   std::map<int, Film *> mapa_filmova;
 
   void ObrisiSve() {
-    for (auto &par : mapa_korisnika) {
+    for (auto &par : mapa_filmova)
       delete par.second;
-    }
-
-    for (auto &par : mapa_filmova) {
+    for (auto &par : mapa_korisnika)
       delete par.second;
-    }
-
-    mapa_korisnika.clear();
     mapa_filmova.clear();
+    mapa_korisnika.clear();
   }
-  void ZamijeniSa(Videoteka &v) noexcept {
-    mapa_korisnika.swap(v.mapa_korisnika);
-    mapa_filmova.swap(v.mapa_filmova);
+
+  void ZamijeniSa(Videoteka &druga) noexcept {
+    mapa_korisnika.swap(druga.mapa_korisnika);
+    mapa_filmova.swap(druga.mapa_filmova);
   }
-  void KopirajIz(const Videoteka &v) {
+
+  void KopirajIz(const Videoteka &druga) {
     try {
-      for (const auto &par : v.mapa_korisnika) {
+      for (const auto &par : druga.mapa_korisnika) {
         Korisnik *novi = new Korisnik(*par.second);
         try {
           mapa_korisnika.insert({par.first, novi});
@@ -102,11 +103,11 @@ class Videoteka {
         }
       }
 
-      for (const auto &par : v.mapa_filmova) {
-        const Film *stari = par.second;
-        Film *novi = new Film(stari->DajEvidencijskiBroj(), stari->DaLiJeDVD(),
-                              stari->DajNaziv(), stari->DajZanr(),
-                              stari->DajGodinuProdukcije());
+      for (const auto &par : druga.mapa_filmova) {
+        const Film &stari = *par.second;
+        Film *novi = new Film(stari.DajEvidencijskiBroj(), stari.DaLiJeDVD(),
+                              stari.DajNaziv(), stari.DajZanr(),
+                              stari.DajGodinuProdukcije());
         try {
           mapa_filmova.insert({par.first, novi});
         } catch (...) {
@@ -115,10 +116,10 @@ class Videoteka {
         }
       }
 
-      for (const auto &par : v.mapa_filmova) {
-        Film *stari_film = par.second;
-        if (stari_film->DaLiJeZaduzen()) {
-          int clanski_broj = stari_film->DajKodKogaJe().DajClanskiBroj();
+      for (const auto &par : druga.mapa_filmova) {
+        const Film &stari = *par.second;
+        if (stari.DaLiJeZaduzen()) {
+          int clanski_broj = stari.DajKodKogaJe().DajClanskiBroj();
           mapa_filmova.at(par.first)->ZaduziFilm(
               *mapa_korisnika.at(clanski_broj));
         }
@@ -131,25 +132,24 @@ class Videoteka {
 
 public:
   Videoteka() = default;
-
   ~Videoteka() { ObrisiSve(); }
 
-  Videoteka(const Videoteka &v) { KopirajIz(v); }
+  Videoteka(const Videoteka &druga) { KopirajIz(druga); }
 
-  Videoteka(Videoteka &&v) noexcept { ZamijeniSa(v); }
+  Videoteka(Videoteka &&druga) noexcept { ZamijeniSa(druga); }
 
-  Videoteka &operator=(const Videoteka &v) {
-    if (this != &v) {
-      Videoteka kopija(v);
+  Videoteka &operator=(const Videoteka &druga) {
+    if (this != &druga) {
+      Videoteka kopija(druga);
       ZamijeniSa(kopija);
     }
     return *this;
   }
 
-  Videoteka &operator=(Videoteka &&v) noexcept {
-    if (this != &v) {
+  Videoteka &operator=(Videoteka &&druga) noexcept {
+    if (this != &druga) {
       ObrisiSve();
-      ZamijeniSa(v);
+      ZamijeniSa(druga);
     }
     return *this;
   }
@@ -231,9 +231,9 @@ public:
         std::cout << "\n";
       par.second->Ispisi();
       if (par.second->DaLiJeZaduzen()) {
-        const Korisnik &k = par.second->DajKodKogaJe();
-        std::cout << "Zaduzen kod korisnika: " << k.DajImeIPrezime() << " ("
-                  << k.DajClanskiBroj() << ")\n";
+        const Korisnik &korisnik = par.second->DajKodKogaJe();
+        std::cout << "Zaduzen kod korisnika: " << korisnik.DajImeIPrezime()
+                  << " (" << korisnik.DajClanskiBroj() << ")\n";
       }
       prvi = false;
     }
@@ -250,7 +250,6 @@ public:
 
     if (it_film->second->DaLiJeZaduzen())
       throw std::logic_error("Film vec zaduzen");
-
     it_film->second->ZaduziFilm(*it_korisnik->second);
   }
 
@@ -270,7 +269,7 @@ public:
 
     bool ima_zaduzenja = false;
     for (const auto &par : mapa_filmova) {
-      if (par.second->DajPokKodKogaJe() == it_korisnik->second) {
+      if (par.second->DajPokKogaJe() == it_korisnik->second) {
         if (ima_zaduzenja)
           std::cout << "\n";
         par.second->Ispisi();
@@ -287,27 +286,22 @@ int main() {
   Videoteka videoteka;
 
   for (;;) {
-    std::cout << "\nOdaberite opciju:\n"
-              << "1 - Registriraj novog korisnika\n"
-              << "2 - Registriraj novi film\n"
-              << "3 - Nadji korisnika\n"
-              << "4 - Nadji film\n"
-              << "5 - Izlistaj korisnike\n"
-              << "6 - Izlistaj filmove\n"
-              << "7 - Zaduzi film\n"
-              << "8 - Razduzi film\n"
-              << "9 - Prikazi zaduzenja korisnika\n"
-              << "0 - Kraj\n"
+    std::cout << "=== VIDEOTEKA ===\n"
+              << "1. Registruj novog korisnika\n"
+              << "2. Registruj novi film\n"
+              << "3. Izlistaj sve korisnike\n"
+              << "4. Izlistaj sve filmove\n"
+              << "5. Zaduzi film korisniku\n"
+              << "6. Razduzi film\n"
+              << "7. Prikazi zaduzenja korisnika\n"
+              << "0. Izlaz\n"
               << "Opcija: ";
 
     int opcija;
-    if (!(std::cin >> opcija))
+    if (!(std::cin >> opcija) || opcija == 0)
       break;
 
     try {
-      if (opcija == 0)
-        break;
-
       if (opcija == 1) {
         int clanski_broj;
         std::string ime_prezime, adresa, telefon;
@@ -315,7 +309,6 @@ int main() {
         std::cout << "Clanski broj: ";
         std::cin >> clanski_broj;
         std::cin.ignore(10000, '\n');
-
         std::cout << "Ime i prezime: ";
         std::getline(std::cin, ime_prezime);
         std::cout << "Adresa: ";
@@ -325,64 +318,47 @@ int main() {
 
         videoteka.RegistrirajNovogKorisnika(clanski_broj, ime_prezime, adresa,
                                             telefon);
-        std::cout << "Korisnik je registriran.\n";
+        std::cout << "Korisnik uspjesno registrovan.\n";
       } else if (opcija == 2) {
-        int evidencijski_broj, godina;
-        char medij;
-        std::string naziv, zanr;
+        int evidencijski_broj, godina_produkcije;
+        char odgovor;
+        std::string naziv_filma, zanr;
 
         std::cout << "Evidencijski broj: ";
         std::cin >> evidencijski_broj;
-        std::cout << "Medij (D za DVD, V za video traku): ";
-        std::cin >> medij;
+        std::cout << "DVD (d/n): ";
+        std::cin >> odgovor;
         std::cin.ignore(10000, '\n');
-
         std::cout << "Naziv filma: ";
-        std::getline(std::cin, naziv);
+        std::getline(std::cin, naziv_filma);
         std::cout << "Zanr: ";
         std::getline(std::cin, zanr);
         std::cout << "Godina produkcije: ";
-        std::cin >> godina;
+        std::cin >> godina_produkcije;
 
-        bool dvd = (medij == 'D' || medij == 'd');
-        videoteka.RegistrirajNoviFilm(evidencijski_broj, dvd, naziv, zanr,
-                                      godina);
-        std::cout << "Film je registriran.\n";
+        bool dvd = odgovor == 'd' || odgovor == 'D';
+        videoteka.RegistrirajNoviFilm(evidencijski_broj, dvd, naziv_filma, zanr,
+                                      godina_produkcije);
+        std::cout << "Film uspjesno registrovan.\n";
       } else if (opcija == 3) {
-        int clanski_broj;
-        std::cout << "Clanski broj: ";
-        std::cin >> clanski_broj;
-        videoteka.NadjiKorisnika(clanski_broj).Ispisi();
-      } else if (opcija == 4) {
-        int evidencijski_broj;
-        std::cout << "Evidencijski broj: ";
-        std::cin >> evidencijski_broj;
-        Film &f = videoteka.NadjiFilm(evidencijski_broj);
-        f.Ispisi();
-        if (f.DaLiJeZaduzen()) {
-          Korisnik &k = f.DajKodKogaJe();
-          std::cout << "Zaduzen kod korisnika: " << k.DajImeIPrezime() << " ("
-                    << k.DajClanskiBroj() << ")\n";
-        }
-      } else if (opcija == 5) {
         videoteka.IzlistajKorisnike();
-      } else if (opcija == 6) {
+      } else if (opcija == 4) {
         videoteka.IzlistajFilmove();
-      } else if (opcija == 7) {
+      } else if (opcija == 5) {
         int evidencijski_broj, clanski_broj;
         std::cout << "Evidencijski broj filma: ";
         std::cin >> evidencijski_broj;
         std::cout << "Clanski broj korisnika: ";
         std::cin >> clanski_broj;
         videoteka.ZaduziFilm(evidencijski_broj, clanski_broj);
-        std::cout << "Film je zaduzen.\n";
-      } else if (opcija == 8) {
+        std::cout << "Film uspjesno zaduzen.\n";
+      } else if (opcija == 6) {
         int evidencijski_broj;
         std::cout << "Evidencijski broj filma: ";
         std::cin >> evidencijski_broj;
         videoteka.RazduziFilm(evidencijski_broj);
-        std::cout << "Film je razduzen.\n";
-      } else if (opcija == 9) {
+        std::cout << "Film uspjesno razduzen.\n";
+      } else if (opcija == 7) {
         int clanski_broj;
         std::cout << "Clanski broj korisnika: ";
         std::cin >> clanski_broj;
@@ -391,8 +367,10 @@ int main() {
         std::cout << "Nepoznata opcija.\n";
       }
     } catch (const std::exception &e) {
-      std::cout << "Izuzetak: " << e.what() << "\n";
+      std::cout << e.what() << "\n";
     }
+
+    std::cout << "\n";
   }
 
   return 0;
