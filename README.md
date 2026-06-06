@@ -1,5 +1,3 @@
-# CPP TP
+# CPP tehnike programiranja
 
-Ovo je repozitorij u kojem smjestam uradjene ZSR-ove (na preskake) i zadace.
-
-Zadace copy-paste na svoj rizik.
+Repozitorij u kojem radim zadaće, ZSR i zadatke sa predavanja (eventualno ispitne zadatke).
