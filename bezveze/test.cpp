@@ -1,16 +1,31 @@
+#include <algorithm>
+#include <functional>
 #include <iostream>
-#include <stack>
 
 int main() {
-  std::stack<int> a;
+  // ispravno
+  int n;
 
-  a.push(2);
-  a.push(3);
-  a.push(-1);
-  a.push(6);
-  while (!a.empty()) {
-    std::cout << a.top() << " ";
-    a.pop();
+  std::cout << "Unesite n brojeva: ";
+  std::cin >> n;
+  try {
+    int *a = new int[n];
+    for (int i = 0; i < n; i++) {
+      std::cin >> a[i];
+    }
+    std::sort(a, a + n, std::greater<int>());
+    for (int i = 0; i < n; i++) {
+      std::cout << a[i] << " ";
+    }
+    delete[] a;
+  } catch (...) {
+
+    std::cout << "Problemi sa memorijom";
   }
+
+  // neispravno (UB)
+  // int x=3;
+  // int b[x];
+
   return 0;
 }
