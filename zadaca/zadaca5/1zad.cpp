@@ -2,23 +2,30 @@
 #include <cmath>
 #include <complex>
 #include <iostream>
+#include <stdexcept>
+#include <string_view>
 #include <tuple>
+
 class Sinusoida {
-  double amplituda, frekvencija, faza; // sve u radijanima
+  double amplituda, frekvencija, faza;
   static constexpr double PI = 3.14159265358979323846;
+
   void Normaliziraj() {
     if (amplituda < 0) {
       amplituda = -amplituda;
       faza += PI;
     }
+
     if (frekvencija < 0) {
       frekvencija = -frekvencija;
       faza = PI - faza;
     }
+
     faza = std::fmod(faza, 2 * PI);
 
     if (faza > PI)
       faza -= 2 * PI;
+
     if (faza < -PI)
       faza += 2 * PI;
   }
@@ -28,11 +35,15 @@ public:
       : amplituda(amplituda), frekvencija(frekvencija), faza(faza) {
     Normaliziraj();
   }
-  Sinusoida(const std::tuple<double, double, double> &a)
-      : Sinusoida(std::get<0>(a), std::get<1>(a), std::get<2>(a)) {}
+
+  Sinusoida(const std::tuple<double, double, double> &parametri)
+      : Sinusoida(std::get<0>(parametri), std::get<1>(parametri),
+                  std::get<2>(parametri)) {}
 
   double DajAmplitudu() const { return amplituda; }
+
   double DajFrekvenciju() const { return frekvencija; }
+
   double DajFazu() const { return faza; }
 
   std::tuple<double, double, double> DajParametre() const {
@@ -139,41 +150,78 @@ int main() {
   Sinusoida s1(-2, 3, 0);
   Sinusoida s2(std::make_tuple(4.0, 3.0, 1.0));
 
-  std::cout << "s1: " << s1["A"] << ", " << s1["omega"] << ", " << s1["phi"]
-            << "\n";
+  std::cout << "Parametri s1: " << s1.DajAmplitudu() << ", "
+            << s1.DajFrekvenciju() << ", " << s1.DajFazu() << '\n';
 
-  std::cout << "Vrijednost s1 za t = 1: " << s1(1) << "\n";
+  auto parametri = s2.DajParametre();
+
+  std::cout << "Parametri s2: " << std::get<0>(parametri) << ", "
+            << std::get<1>(parametri) << ", " << std::get<2>(parametri) << '\n';
+
+  std::cout << "Pristup pomocu []: " << s1["A"] << ", " << s1["omega"] << ", "
+            << s1["phi"] << '\n';
+
+  std::cout << "Vrijednost s1 za t = 1: " << s1(1) << '\n';
 
   Sinusoida zbir = s1 + s2;
   Sinusoida razlika = s1 - s2;
 
-  std::cout << "Amplituda zbira: " << zbir.DajAmplitudu() << "\n";
-  std::cout << "Amplituda razlike: " << razlika.DajAmplitudu() << "\n";
+  std::cout << "Zbir: " << zbir["A"] << ", " << zbir["w"] << ", " << zbir["fi"]
+            << '\n';
 
-  s1.PostaviAmplitudu(-5).PostaviFrekvenciju(-2).PostaviFazu(15);
+  std::cout << "Razlika: " << razlika["A"] << ", " << razlika["w"] << ", "
+            << razlika["fi"] << '\n';
 
-  std::cout << "Normalizirani parametri s1: " << s1["A"] << ", " << s1["w"]
-            << ", " << s1["fi"] << "\n";
+  Sinusoida negativna = -s2;
+  Sinusoida proizvod1 = s2 * 3;
+  Sinusoida proizvod2 = 3 * s2;
+  Sinusoida kolicnik = s2 / 2;
 
-  Sinusoida s3 = -s2;
-  Sinusoida s4 = 3 * s2;
-  Sinusoida s5 = s2 / 2;
+  std::cout << "-s2: " << negativna["A"] << ", " << negativna["w"] << ", "
+            << negativna["fi"] << '\n';
+
+  std::cout << "s2 * 3: " << proizvod1["A"] << '\n';
+  std::cout << "3 * s2: " << proizvod2["A"] << '\n';
+  std::cout << "s2 / 2: " << kolicnik["A"] << '\n';
+
+  Sinusoida s3(1, 3, 0);
 
   s3 += s2;
-  s4 -= s2;
-  s5 *= 4;
-  s5 /= 2;
+  s3 -= s2;
+  s3 *= 4;
+  s3 /= 2;
+
+  std::cout << "Nakon slozenih operatora: " << s3["A"] << ", " << s3["w"]
+            << ", " << s3["fi"] << '\n';
+
+  s3.PostaviAmplitudu(-5).PostaviFrekvenciju(-2).PostaviFazu(15);
+
+  std::cout << "Nakon pojedinacnih postavljanja: " << s3["A"] << ", " << s3["w"]
+            << ", " << s3["fi"] << '\n';
+
+  s3.PostaviParametre(-2, -3, 12);
+
+  std::cout << "Nakon PostaviParametre sa tri parametra: " << s3["A"] << ", "
+            << s3["w"] << ", " << s3["fi"] << '\n';
+
+  s3.PostaviParametre(std::make_tuple(-1.0, -4.0, -15.0));
+
+  std::cout << "Nakon PostaviParametre sa tuple: " << s3["A"] << ", " << s3["w"]
+            << ", " << s3["fi"] << '\n';
 
   try {
-    std::cout << s1["nepostojeci_parametar"];
+    std::cout << s1["nepostojeci_parametar"] << '\n';
   } catch (const std::domain_error &e) {
-    std::cout << e.what() << "\n";
+    std::cout << e.what() << '\n';
   }
 
   try {
-    Sinusoida s6(1, 100, 0);
-    Sinusoida s7 = s1 + s6;
+    Sinusoida s4(1, 100, 0);
+    Sinusoida s5 = s1 + s4;
+    std::cout << s5["A"] << '\n';
   } catch (const std::domain_error &e) {
-    std::cout << e.what() << "\n";
+    std::cout << e.what() << '\n';
   }
+
+  return 0;
 }

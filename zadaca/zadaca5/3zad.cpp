@@ -174,8 +174,6 @@ public:
     narudzbe.erase(narudzbe.begin());
   }
 
-  void ObradiNarudzbu() { ObradiNaruzdbu(); }
-
   bool DaLiImaNarudzbi() const { return !narudzbe.empty(); }
 
   double operator[](std::string_view ime_prezime) const {
@@ -255,28 +253,90 @@ public:
 
 int main() {
   try {
-    Narudzbe narudzbe;
+    Narudzba osnovna("Burek", 4, "Donald Trump");
+    NarudzbaSaPicem sa_picem("Sogan dolma", 4, "Josip Broz Tito", "Fanta",
+                             2.5);
 
+    std::cout << "Osnovna narudzba preko pristupnih metoda: "
+              << osnovna.DajNazivObroka() << ", " << osnovna.DajCijenuObroka()
+              << " KM, " << osnovna.DajNarucioca() << '\n';
+    std::cout << "Ukupna cijena osnovne narudzbe: "
+              << osnovna.DajUkupnuCijenu() << " KM\n";
+    osnovna.Ispisi();
+
+    std::cout << "\nNarudzba sa picem preko pristupnih metoda: "
+              << sa_picem.DajNazivObroka() << ", " << sa_picem.DajCijenuObroka()
+              << " KM, " << sa_picem.DajNazivPica() << ", "
+              << sa_picem.DajCijenuPica() << " KM, " << sa_picem.DajNarucioca()
+              << '\n';
+    std::cout << "Ukupna cijena narudzbe sa picem: "
+              << sa_picem.DajUkupnuCijenu() << " KM\n";
+    sa_picem.Ispisi();
+
+    Narudzba *polimorfna_kopija = sa_picem.DajKopiju();
+    std::cout << "\nPolimorfna kopija narudzbe sa picem:\n";
+    polimorfna_kopija->Ispisi();
+    delete polimorfna_kopija;
+
+    Narudzbe narudzbe;
     narudzbe.NaruciObrok("Burek", 4, "Donald Trump");
     narudzbe.NaruciObrokSaPicem("Sogan dolma", 4, "Josip Broz Tito", "Fanta",
                                 2.5);
 
+    std::cout << "\nDa li ima narudzbi: " << std::boolalpha
+              << narudzbe.DaLiImaNarudzbi() << '\n';
     std::cout << "Ukupno za Josipa: " << narudzbe["Josip Broz Tito"]
-              << " KM\n\n";
+              << " KM\n";
+    std::cout << "Ukupno za studenta bez narudzbi: " << narudzbe["Niko"]
+              << " KM\n";
 
     Narudzbe kopija(narudzbe);
+    std::cout << "\nPrva narudzba iz duboke kopije:\n";
     kopija.ObradiNaruzdbu();
+    std::cout << "Da li original i dalje ima narudzbi: "
+              << narudzbe.DaLiImaNarudzbi() << '\n';
 
-    std::cout << "\nOriginal i dalje sadrzi obje narudzbe:\n";
-    while (narudzbe.DaLiImaNarudzbi()) {
-      narudzbe.ObradiNaruzdbu();
-      std::cout << '\n';
+    Narudzbe dodijeljene;
+    dodijeljene = narudzbe;
+    Narudzbe pomjerene(std::move(dodijeljene));
+    Narudzbe pomjeranjem_dodijeljene;
+    pomjeranjem_dodijeljene = std::move(pomjerene);
+    std::cout << "Ukupno za Josipa nakon kopiranja i pomjeranja: "
+              << pomjeranjem_dodijeljene["Josip Broz Tito"] << " KM\n";
+
+    {
+      std::ofstream cjenovnik("CJENOVNIK.TXT");
+      cjenovnik << "Burek\n4\n"
+                << "Sogan dolma\n4\n"
+                << "Fanta\n2.5\n"
+                << "Krompirusa\n3\n"
+                << "Jogurt\n1.5\n";
+    }
+
+    {
+      std::ofstream datoteka_narudzbi("NARUDZBE.TXT");
+      datoteka_narudzbi << "Student Prvi\nBurek\n\n"
+                        << "Student Drugi\nSogan dolma\nFanta\n"
+                        << "Student Prvi\nKrompirusa\nJogurt\n";
     }
 
     Narudzbe ucitane;
+    ucitane.NaruciObrok("Burek", 4, "Postojeci Student");
     ucitane.UcitajIzDatoteka("NARUDZBE.TXT", "CJENOVNIK.TXT");
-    while (ucitane.DaLiImaNarudzbi())
+
+    std::cout << "\nUkupno za Studenta Prvog nakon ucitavanja: "
+              << ucitane["Student Prvi"] << " KM\n";
+    std::cout << "Sve ucitane narudzbe, ukljucujuci ranije postojecu:\n";
+    while (ucitane.DaLiImaNarudzbi()) {
       ucitane.ObradiNaruzdbu();
+      std::cout << '\n';
+    }
+
+    try {
+      ucitane.ObradiNaruzdbu();
+    } catch (const std::range_error &e) {
+      std::cout << e.what() << '\n';
+    }
   } catch (const std::exception &e) {
     std::cout << e.what() << '\n';
   }
