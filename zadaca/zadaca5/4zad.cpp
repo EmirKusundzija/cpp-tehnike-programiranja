@@ -159,7 +159,7 @@ void ProvjeriKrajReda(std::istringstream &tok) {
 std::vector<Vozilo> UcitajVozila(const std::string &ime_datoteke) {
   std::ifstream ulaz(ime_datoteke);
   if (!ulaz)
-    throw std::logic_error("Trazena datoteka ne postoji");
+    throw std::logic_error("Datoteka " + ime_datoteke + " ne postoji");
 
   std::vector<Vozilo> vozila;
   std::string red;
@@ -186,7 +186,9 @@ std::vector<Vozilo> UcitajVozila(const std::string &ime_datoteke) {
       std::vector<int> tezine_putnika;
       for (int i = 0; i < broj_putnika; i++) {
         int tezina_putnika;
-        if (!(tok >> tezina_putnika) || tezina_putnika < 0)
+        if (!(tok >> tezina_putnika))
+          throw std::logic_error("Nepotpuni podaci");
+        if (tezina_putnika < 0)
           throw std::logic_error("Datoteka sadrzi besmislene podatke");
         tezine_putnika.push_back(tezina_putnika);
       }
@@ -210,7 +212,7 @@ std::vector<Vozilo> UcitajVozila(const std::string &ime_datoteke) {
       vozila.push_back(
           Autobus(tezina, broj_putnika, prosjecna_tezina_putnika));
     } else {
-      throw std::logic_error("Datoteka sadrzi besmislene podatke");
+      throw std::logic_error("Nepoznat tip vozila");
     }
   }
 
@@ -222,55 +224,6 @@ std::vector<Vozilo> UcitajVozila(const std::string &ime_datoteke) {
 
 int main() {
   try {
-    Automobil automobil(700, {80, 90, 60});
-    Kamion kamion(1600, 850);
-    Autobus autobus(2500, 30, 75);
-
-    std::cout << "Podaci o automobilu:\n";
-    automobil.IspisiPodatke();
-    std::cout << "\nPodaci o kamionu:\n";
-    kamion.IspisiPodatke();
-    std::cout << "\nPodaci o autobusu:\n";
-    autobus.IspisiPodatke();
-
-    Vozilo vozilo1(automobil);
-    Vozilo vozilo2(kamion);
-    Vozilo vozilo3(autobus);
-
-    std::cout << "\nVlastita tezina vozila1: " << vozilo1.DajTezinu()
-              << " kg\n";
-    std::cout << "Ukupna tezina vozila1: " << vozilo1.DajUkupnuTezinu()
-              << " kg\n";
-
-    Vozilo kopija(vozilo1);
-    Vozilo dodijeljeno;
-    dodijeljeno = vozilo2;
-    Vozilo pomjereno(std::move(vozilo3));
-    Vozilo pomjeranjem_dodijeljeno;
-    pomjeranjem_dodijeljeno = std::move(pomjereno);
-
-    std::cout << "Ukupna tezina kopiranog vozila: "
-              << kopija.DajUkupnuTezinu() << " kg\n";
-    std::cout << "Ukupna tezina dodijeljenog vozila: "
-              << dodijeljeno.DajUkupnuTezinu() << " kg\n";
-    std::cout << "Ukupna tezina pomjerenog vozila: "
-              << pomjeranjem_dodijeljeno.DajUkupnuTezinu() << " kg\n";
-
-    try {
-      Vozilo nespecificirano;
-      std::cout << nespecificirano.DajTezinu() << '\n';
-    } catch (const std::logic_error &e) {
-      std::cout << e.what() << '\n';
-    }
-
-    {
-      std::ofstream datoteka("VOZILA.TXT");
-      datoteka << "A500 3 80 60 75\n"
-               << "K1500 1200\n"
-               << "B2200 50 80\n"
-               << "A700 0\n";
-    }
-
     std::vector<Vozilo> vozila = UcitajVozila("VOZILA.TXT");
 
     std::sort(vozila.begin(), vozila.end(),
@@ -278,7 +231,6 @@ int main() {
                 return v1.DajUkupnuTezinu() < v2.DajUkupnuTezinu();
               });
 
-    std::cout << "\nUkupne tezine vozila nakon sortiranja:\n";
     for (const auto &vozilo : vozila)
       std::cout << vozilo.DajUkupnuTezinu() << '\n';
   } catch (const std::exception &e) {
