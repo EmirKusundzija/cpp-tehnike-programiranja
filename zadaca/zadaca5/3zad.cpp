@@ -33,7 +33,7 @@ public:
               << "Narucilac: " << ime_prezime << '\n';
   }
 
-  virtual Narudzba *DajKopiju() const { return new Narudzba(*this); }
+  virtual Narudzba *DajKopiju() { return new Narudzba(*this); }
 
   virtual ~Narudzba() = default;
 };
@@ -65,7 +65,7 @@ public:
               << "Narucilac: " << DajNarucioca() << '\n';
   }
 
-  Narudzba *DajKopiju() const override { return new NarudzbaSaPicem(*this); }
+  Narudzba *DajKopiju() override { return new NarudzbaSaPicem(*this); }
 };
 
 class Narudzbe {
@@ -104,7 +104,7 @@ class Narudzbe {
 
     try {
       kopije.reserve(izvor.size());
-      for (const auto *narudzba : izvor)
+      for (auto *narudzba : izvor)
         kopije.push_back(narudzba->DajKopiju());
     } catch (...) {
       for (auto *narudzba : kopije)
@@ -165,7 +165,7 @@ public:
                                       naziv_pica, cijena_pica));
   }
 
-  void ObradiNaruzdbu() {
+  void ObradiNarudzbu() {
     if (narudzbe.empty())
       throw std::range_error("Nema vise narudzbi");
 
@@ -254,14 +254,13 @@ public:
 int main() {
   try {
     Narudzba osnovna("Burek", 4, "Donald Trump");
-    NarudzbaSaPicem sa_picem("Sogan dolma", 4, "Josip Broz Tito", "Fanta",
-                             2.5);
+    NarudzbaSaPicem sa_picem("Sogan dolma", 4, "Josip Broz Tito", "Fanta", 2.5);
 
     std::cout << "Osnovna narudzba preko pristupnih metoda: "
               << osnovna.DajNazivObroka() << ", " << osnovna.DajCijenuObroka()
               << " KM, " << osnovna.DajNarucioca() << '\n';
-    std::cout << "Ukupna cijena osnovne narudzbe: "
-              << osnovna.DajUkupnuCijenu() << " KM\n";
+    std::cout << "Ukupna cijena osnovne narudzbe: " << osnovna.DajUkupnuCijenu()
+              << " KM\n";
     osnovna.Ispisi();
 
     std::cout << "\nNarudzba sa picem preko pristupnih metoda: "
@@ -285,14 +284,13 @@ int main() {
 
     std::cout << "\nDa li ima narudzbi: " << std::boolalpha
               << narudzbe.DaLiImaNarudzbi() << '\n';
-    std::cout << "Ukupno za Josipa: " << narudzbe["Josip Broz Tito"]
-              << " KM\n";
+    std::cout << "Ukupno za Josipa: " << narudzbe["Josip Broz Tito"] << " KM\n";
     std::cout << "Ukupno za studenta bez narudzbi: " << narudzbe["Niko"]
               << " KM\n";
 
     Narudzbe kopija(narudzbe);
     std::cout << "\nPrva narudzba iz duboke kopije:\n";
-    kopija.ObradiNaruzdbu();
+    kopija.ObradiNarudzbu();
     std::cout << "Da li original i dalje ima narudzbi: "
               << narudzbe.DaLiImaNarudzbi() << '\n';
 
@@ -328,12 +326,12 @@ int main() {
               << ucitane["Student Prvi"] << " KM\n";
     std::cout << "Sve ucitane narudzbe, ukljucujuci ranije postojecu:\n";
     while (ucitane.DaLiImaNarudzbi()) {
-      ucitane.ObradiNaruzdbu();
+      ucitane.ObradiNarudzbu();
       std::cout << '\n';
     }
 
     try {
-      ucitane.ObradiNaruzdbu();
+      ucitane.ObradiNarudzbu();
     } catch (const std::range_error &e) {
       std::cout << e.what() << '\n';
     }
