@@ -69,17 +69,60 @@ public:
   }
   Vozilo *DajKopiju() const override { return new Autobus(*this); }
   void IspisiPodatke() const override {
-    std::cout << "Vrsta vozila: Kamion\n";
+    std::cout << "Vrsta vozila: Autobus\n";
     std::cout << "Vlastita tezina: " << DajTezinu() << " kg\n";
     std::cout << "Broj putnika: " << broj_putnika << "\n";
     std::cout << "Ukupna tezina: " << DajUkupnuTezinu() << " kg\n";
   }
 };
 
+class Parking {
+  std::vector<std::unique_ptr<Vozilo>> vozila;
+
+public:
+  Parking() = default;
+  Parking(const Parking &a) {
+    for (auto &p : a.vozila) {
+      vozila.push_back(std::unique_ptr<Vozilo>(p->DajKopiju()));
+    }
+  }
+  Parking &operator=(const Parking &a) {
+    if (this != &a) {
+      vozila.clear();
+      for (auto &p : a.vozila) {
+        vozila.push_back(std::unique_ptr<Vozilo>(p->DajKopiju()));
+      }
+    }
+    return *this;
+  }
+  void DodajAutomobil(int tezina, std::vector<int> tezine) {
+    vozila.emplace_back(std::make_unique<Automobil>(tezina, tezine));
+  }
+  void DodajKamion(int tezina, int tezina_tereta) {
+    vozila.emplace_back(std::make_unique<Kamion>(tezina, tezina_tereta));
+  }
+  void DodajAutobus(int tezina, int broj_putnika, int prosjecna_tezina) {
+    vozila.emplace_back(
+        std::make_unique<Autobus>(tezina, broj_putnika, prosjecna_tezina));
+  }
+  void DodajVozilo(const Vozilo &v) {
+    vozila.emplace_back(std::unique_ptr<Vozilo>(v.DajKopiju()));
+  }
+  void IspisiPodatke() const {
+    for (auto &v : vozila) {
+      v->IspisiPodatke();
+    }
+  }
+};
+
 int main() {
 
-  Automobil a(700, {80, 90, 60});
+  Parking carsijski;
 
-  a.IspisiPodatke();
+  carsijski.DodajAutobus(700, 50, 100);
+  carsijski.DodajVozilo(Automobil(780, {10, 20, 30}));
+  carsijski.DodajVozilo(Kamion(780, 103));
+
+  carsijski.IspisiPodatke();
   return 0;
 }
