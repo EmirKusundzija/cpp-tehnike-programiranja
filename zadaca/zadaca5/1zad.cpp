@@ -11,23 +11,20 @@ class Sinusoida {
   static constexpr double PI = 3.14159265358979323846;
 
   void Normaliziraj() {
-    if (amplituda < 0) {
-      amplituda = -amplituda;
+    bool freq_negativna = (frekvencija < 0);
+    bool amp_negativna = (amplituda < 0);
+
+    if (freq_negativna)
+      faza = -faza;
+    if (freq_negativna != amp_negativna)
       faza += PI;
-    }
 
-    if (frekvencija < 0) {
-      frekvencija = -frekvencija;
-      faza = PI - faza;
-    }
+    frekvencija = std::abs(frekvencija);
+    amplituda = std::abs(amplituda);
 
-    faza = std::fmod(faza, 2 * PI);
-
-    if (faza > PI)
-      faza -= 2 * PI;
-
-    if (faza < -PI)
-      faza += 2 * PI;
+    faza = faza - 2 * PI * std::floor((faza + PI) / (2 * PI));
+    if (std::abs(faza + PI) < 1e-10)
+      faza = PI;
   }
 
 public:
@@ -85,7 +82,7 @@ public:
   }
 
   friend Sinusoida operator+(const Sinusoida &s1, const Sinusoida &s2) {
-    if (s1.frekvencija != s2.frekvencija)
+    if (std::abs(s1.frekvencija - s2.frekvencija) > 1e-10)
       throw std::domain_error("Razlicite frekvencije");
 
     std::complex<double> fazor =
@@ -95,7 +92,7 @@ public:
   }
 
   friend Sinusoida operator-(const Sinusoida &s1, const Sinusoida &s2) {
-    if (s1.frekvencija != s2.frekvencija)
+    if (std::abs(s1.frekvencija - s2.frekvencija) > 1e-10)
       throw std::domain_error("Razlicite frekvencije");
 
     std::complex<double> fazor =
